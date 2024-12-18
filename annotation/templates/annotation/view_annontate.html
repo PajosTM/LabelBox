@@ -1,0 +1,43 @@
+{%load static%}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>View Annotation</title>
+    <link rel="stylesheet" href="{% static 'css/view_annontate.css' %}">
+</head>
+<body>
+
+    <h1>Image with Annotations</h1>
+    <h3>{{ image.title }}</h3>
+    <img src="{{ image.image_file.url }}" width="500px" id="image">
+
+    <h4>Annotations:</h4>
+    {% if annotations %}
+        <ul id="annotation-list">
+            {% for annotation in annotations %}
+                <li>
+                    <strong>Bounding Boxes:</strong>
+                    <ul>
+                        {% for box in annotation.annotation_data.bounding_boxes %}
+                            <li>
+                                <strong>Top:</strong> {{ box.top }}<br>
+                                <strong>Left:</strong> {{ box.left }}<br>
+                                <strong>Width:</strong> {{ box.width }}<br>
+                                <strong>Height:</strong> {{ box.height }}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No annotations available.</p>
+    {% endif %}
+
+    <button onclick="window.history.back()">Back to Images</button>
+
+    <script src="{% static 'js/view_annotate.js' %}"></script>
+</body>
+</html>

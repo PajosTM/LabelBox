@@ -1,0 +1,31 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Image</title>
+
+    <!-- Link the CSS file -->
+    <link rel="stylesheet" href="{% static 'css/upload.css' %}">
+</head>
+<body>
+    <h1>Upload Image</h1>
+
+    <!-- Back Button with arrow icon -->
+    <a href="{% url 'images' %}" class="back">
+        &#8592; Back to Images
+    </a>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <label for="title">Title:</label>
+        <input type="text" name="title" required><br>
+
+        <input type="file" name="image_file" required><br><br>
+
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>

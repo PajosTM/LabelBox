@@ -1,0 +1,120 @@
+
+    <script>
+        // Initialize Fabric.js canvas
+        const canvas = new fabric.Canvas('annotationCanvas', {
+            selection: false, // Disable selection of objects like the image
+        });
+
+        const imageElement = new Image();
+        imageElement.src = "{{ image.image_file.url }}";  // Use the image URL from the model
+
+        imageElement.onload = () => {
+            // Load image into Fabric.js canvas
+            const img = new fabric.Image(imageElement);
+
+            // Optionally scale the image to fit the canvas size
+            const canvasWidth = window.innerWidth * 0.8; // Adjust canvas size (80% of window width for example)
+            const scaleFactor = canvasWidth / img.width;
+
+            img.scale(scaleFactor);  // Scale image to fit within the desired width
+            canvas.setWidth(img.width * scaleFactor);  // Set canvas width to match image size
+            canvas.setHeight(img.height * scaleFactor);  // Set canvas height accordingly
+            canvas.add(img);  // Add image to canvas
+
+            // Disable image dragging
+            img.set({ selectable: false });  // Prevent the image from being selected or moved
+            canvas.renderAll();
+        };
+
+        // Variable to track if a bounding box has already been created
+        let bboxCreated = false;
+        let rect;
+
+        // Allow drawing bounding boxes on the canvas with a mouse drag (but only one)
+        canvas.on('mouse:down', (e) => {
+            if (bboxCreated) return;  // If a bounding box is already created, don't allow more
+
+            const pointer = canvas.getPointer(e.e);
+            const startX = pointer.x;
+            const startY = pointer.y;
+
+            // Create a new rectangle at the clicked position
+            rect = new fabric.Rect({
+                left: startX,
+                top: startY,
+                fill: 'rgba(255, 0, 0, 0.3)',
+                stroke: 'red',
+                strokeWidth: 2,
+                width: 1,
+                height: 1,
+            });
+
+            canvas.add(rect);  // Add the bounding box to the canvas
+        });
+
+        canvas.on('mouse:move', (e) => {
+            if (!rect || bboxCreated) return;  // Don't do anything if no rect is being drawn or if bbox is created
+
+            const pointer = canvas.getPointer(e.e);
+            rect.set({
+                width: Math.abs(pointer.x - rect.left),
+                height: Math.abs(pointer.y - rect.top),
+            });
+
+            canvas.renderAll();  // Re-render the canvas to show the bounding box resizing
+        });
+
+        canvas.on('mouse:up', () => {
+            if (rect) {
+                rect.setCoords();
+                bboxCreated = true;  // Mark that the bounding box has been created
+            }
+        });
+
+        // Handle save annotation button click
+    document.getElementById('save-annotation').addEventListener('click', () => {
+        const annotationData = {
+            bounding_boxes: [],
+        };
+
+        canvas.getObjects('rect').forEach((rect) => {
+            annotationData.bounding_boxes.push({
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+            });
+        });
+
+        const imageId = "{{ image.id }}";  // Image ID from Django context
+
+        // Send annotation data to backend
+        fetch("{% url 'save_annotation' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify({
+                image_id: imageId,
+                annotation: annotationData,
+            }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                // Show the success message
+                alert(data.message);
+
+                // Redirect to the images page when the user clicks "OK"
+                window.location.href = "{% url 'images' %}";
+            } else if (data.error) {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('Failed to save annotation.');
+        });
+    });
+    </script>

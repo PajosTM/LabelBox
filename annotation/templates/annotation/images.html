@@ -1,0 +1,42 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Showcase</title>
+
+    <!-- Link the CSS file -->
+    <link rel="stylesheet" href="{% static 'css/images.css' %}">
+</head>
+<body>
+    <!-- Header and Upload Button side by side -->
+    <div class="header-container">
+        <h1>Uploaded Images</h1>
+
+        <!-- Upload button beside the header -->
+        <button onclick="window.location.href='{% url 'upload' %}'">Upload New Image</button>
+    </div>
+
+    <!-- Display uploaded images with action buttons -->
+    <div>
+        {% for image in images %}
+            <div class="image-container">
+                <!-- Display image -->
+                <img src="{{ image.image_file.url }}" width="300px">
+
+                <!-- Button container for actions -->
+                <div class="button-container">
+                    <!-- Button to view the image and annotation together -->
+                    <button onclick="window.location.href='{% url 'view_annotation' image.id %}'">View Image and Annotation</button>
+
+                    <!-- Button to redo annotation (redirect to annotation page) -->
+                    <button onclick="window.location.href='{% url 'annotation_page' image.id %}'">Redo Annotation</button>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+</body>
+</html>
