@@ -1,1 +1,1 @@
-web: gunicorn LabelBox.wsgi
+web: gunicorn LabelBox.wsgi:application
